@@ -2,7 +2,15 @@ import signal
 import time
 from config.settings import load_environment
 from services.socket_client import start_socketio, send_to_socketio
-from services.gpio_control import turn_green_on, turn_red_on, play_sound, setup_gpio
+from services.gpio_control import (
+    turn_green_on,
+    turn_red_on,
+    play_sound,
+    setup_gpio,
+    LED_GREEN,
+    LED_YELLOW,
+    turn_led_off,
+)
 from services.rfid_reader import set_up_the_reader, send_command, read_buffer
 from utils.helpers import exit_gracefully
 
@@ -36,14 +44,21 @@ try:
             if tag not in detected_tags:
                 print("Nouveau tag détecté :", tag)
                 detected_tags.add(tag)
+
+                # Envoyer le tag individuellement via Socket.IO
                 send_to_socketio(tag, RFID_Time)
+
+                # Afficher et activer les indicateurs de notification
                 turn_green_on()
                 play_sound()
+                turn_led_off(LED_GREEN)
+
             else:
                 turn_red_on()
                 play_sound(0.5)
+                turn_led_off(LED_YELLOW)
 
-            time.sleep(1)
+        time.sleep(1)
 
 except Exception as e:
     print(f"Erreur rencontrée : {e}")
